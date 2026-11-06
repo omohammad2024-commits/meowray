@@ -1,0 +1,14 @@
+{
+  "name": "meowray",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MeowRay — portable single-port panel runner (KataBump / Railway / any Node host)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "SELFTEST=1 node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

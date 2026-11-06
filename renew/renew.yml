@@ -1,0 +1,58 @@
+# MeowRay — KataBump Auto Renew (v2)
+# Install: copy this file to .github/workflows/renew.yml and renew.py to the
+# repository root, then add the three secrets (see renew/README.md).
+#
+# KataBump free servers must be renewed every 4 days; this runs every 2 days
+# so a single failed run does not kill the server. On failure the bot's
+# screenshot is uploaded as a workflow artifact — check it before re-running.
+
+name: MeowRay KataBump Auto Renew
+
+on:
+  schedule:
+    - cron: "17 5 */2 * *"   # every 2 days, 05:17 UTC
+  workflow_dispatch: {}       # manual run from the Actions tab
+
+permissions:
+  contents: read
+
+concurrency:
+  group: katabump-renew
+  cancel-in-progress: false
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Playwright + Chromium
+        run: |
+          pip install --no-cache-dir playwright
+          playwright install --with-deps chromium
+
+      - name: Renew
+        env:
+          KATABUMP_EMAIL: ${{ secrets.KATABUMP_EMAIL }}
+          KATABUMP_PASSWORD: ${{ secrets.KATABUMP_PASSWORD }}
+          SERVER_ID: ${{ secrets.SERVER_ID }}
+          RENEW_ARTIFACTS: ${{ github.workspace }}
+        run: python renew.py
+
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: renew-failure-${{ github.run_id }}
+          path: |
+            renew-failure.png
+            renew-failure.html
+          if-no-files-found: ignore
+          retention-days: 14

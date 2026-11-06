@@ -1,0 +1,5 @@
+meowray-state/
+*.zip
+*.log
+__pycache__/
+node_modules/
